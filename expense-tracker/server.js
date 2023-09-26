@@ -126,6 +126,6 @@ app.post("/login", async (req, res) => {
         }
     } catch(error) {
         console.log("Error", error);
-        res.status(500).json({ error:"Login failed" });
+        res.status(500).json({ error:"User not authorized" });
     }
 });
