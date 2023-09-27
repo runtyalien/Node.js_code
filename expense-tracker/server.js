@@ -2,9 +2,12 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const Sequelize = require("sequelize");
 const bcrypt = require("bcrypt");
-
+const loginController = require("./controller/login");
+const expenseController = require("./controller/expense");
 const app = express();
 const port = 3000;
+
+app.use(bodyParser.json());
 
 const sequelize = new Sequelize("usersexpense", "root", "omkar", {
   host: "localhost",
@@ -38,7 +41,26 @@ const User = sequelize.define(
   }
 );
 
-app.use(bodyParser.json());
+const Expense = sequelize.define("expenses", {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    allowNull: false,
+    primaryKey: true,
+  },
+  amount: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+  description: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+  category: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
+});
 
 //app.use(express.static("public"));
 
@@ -48,6 +70,10 @@ app.get("/", (req, res) => {
 
 app.get("/login", (req, res) => {
   res.sendFile(__dirname + "/views/login.html");
+});
+
+app.get("/expense", (req, res) => {
+  res.sendFile(__dirname + "/views/expense.html");
 });
 
 sequelize
@@ -71,7 +97,6 @@ app.post("/signup", async (req, res) => {
     if (existingUser) {
       res.status(400).json({ error: "Email already in use" });
     } else {
-
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = await User.create({ name, email, password: hashedPassword });
@@ -102,7 +127,8 @@ app.post("/login", async (req, res) => {
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (passwordMatch) {
-      res.status(200).json({ message: "Login successful" });
+      //res.status(200).json({ message: "Login successful" });
+      res.redirect("/expense");
     } else {
       res.status(401).json({ error: "Invalid password" });
     }
@@ -110,4 +136,56 @@ app.post("/login", async (req, res) => {
     console.log("Error", error);
     res.status(500).json({ error: "User not authorized" });
   }
+});
+
+app.post("/expense", async (req, res) => {
+  const { amount, description, category } = req.body;
+
+  Expense.create({
+    amount,
+    description,
+    category,
+  })
+    .then((expense) => {
+      console.log("Expense created", expense.toJSON());
+      console.log(expense);
+      res.status(201).json(expense);
+    })
+    .catch((err) => {
+      console.error("Error catching expense", err);
+      res.status(500).json({ error: "Errors catching expense" });
+    });
+});
+
+app.delete("/expense/:id", async (req, res) => {
+  const expenseId = req.params.id;
+  Expense.findByPk(expenseId)
+    .then((expense) => {
+      if (!expense) {
+        return res.status(404).json({ error: "Expense not found" });
+      }
+      return expense.destroy();
+    })
+    .then(() => {
+      console.log("Expense deleted");
+      res.status(204).send();
+    })
+    .catch((error) => {
+      console.log("Error deleting expense", error);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Error deleting user" });
+      }
+    });
+});
+
+app.get("/expenses", async (req, res) => {
+  Expense.findAll()
+    .then((expenses) => {
+      console.log("Users retrieved", expenses);
+      res.status(200).json(expenses);
+    })
+    .catch((error) => {
+      console.error("Error retrieving users:", error);
+      res.status(500).json({ error: "Error retrieving users" });
+    });
 });
