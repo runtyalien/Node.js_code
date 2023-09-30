@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const Sequelize = require("sequelize");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const loginController = require("./controller/login");
 const expenseController = require("./controller/expense");
 const app = express();
@@ -62,7 +63,17 @@ const Expense = sequelize.define("expenses", {
   },
 });
 
+User.hasMany(Expense);
+Expense.belongsTo(User);
+
 //app.use(express.static("public"));
+
+function generateAccessToken(id, name) {
+  return jwt.sign(
+    { userId: id, name: name },
+    "aff135734abed1bf492684a890eb7d59081b5f44b23ded12a7339451b9bc2048"
+  );
+}
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/signup.html");
@@ -76,8 +87,10 @@ app.get("/expense", (req, res) => {
   res.sendFile(__dirname + "/views/expense.html");
 });
 
+
+
 sequelize
-  .sync()
+  .sync({ force: true })
   .then(() => {
     console.log("Database is synced");
     app.listen(port, () => {
@@ -110,7 +123,7 @@ app.post("/signup", async (req, res) => {
 });
 
 // Login functionality
-app.post("/login", async (req, res) => {
+/*app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -136,25 +149,82 @@ app.post("/login", async (req, res) => {
     console.log("Error", error);
     res.status(500).json({ error: "User not authorized" });
   }
+});*/
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ where: { email: email } });
+
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    console.log("Entered email:", user.email);
+    console.log("Entered Password:", password);
+    console.log("Database Password:", user.password);
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (passwordMatch) {
+      res
+        .status(200)
+        .json({
+          success: true,
+          message: "Login successful",
+          token: generateAccessToken(user.id, user.name),
+        });
+      //return res.redirect('/expense');
+    } else {
+      res.status(401).json({ error: "Invalid password" });
+    }
+  } catch (error) {
+    console.log("Error", error);
+    res.status(500).json({ error: "User not authorized" });
+  }
 });
 
 app.post("/expense", async (req, res) => {
   const { amount, description, category } = req.body;
+  const token = req.header("Authorization").replace("Bearer ", "");
 
-  Expense.create({
-    amount,
-    description,
-    category,
-  })
-    .then((expense) => {
-      console.log("Expense created", expense.toJSON());
-      console.log(expense);
-      res.status(201).json(expense);
+  try {
+    const decoded = jwt.verify(
+      token,
+      "aff135734abed1bf492684a890eb7d59081b5f44b23ded12a7339451b9bc2048"
+    );
+    const userId = decoded.userId;
+    console.log("Decoded userId", userId);
+
+    const expense = await Expense.create({
+      amount,
+      description,
+      category,
+      userexpenseId: userId,
     })
-    .catch((err) => {
-      console.error("Error catching expense", err);
-      res.status(500).json({ error: "Errors catching expense" });
-    });
+
+    console.log("Expense created", expense.toJSON());
+    res.status(201).json(expense);
+
+    /*Expense.create({
+      amount,
+      description,
+      category,
+      User: userId,
+    })
+      .then((expense) => {
+        console.log("Expense created", expense.toJSON());
+        console.log(expense);
+        res.status(201).json(expense);
+      })
+      .catch((err) => {
+        console.error("Error catching expense", err);
+        res.status(500).json({ error: "Errors catching expense" });
+      });*/
+  } catch (error) {
+    console.log("Error decoding token", error);
+    res.status(401).json({ error: "Unauthorized" });
+  }
 });
 
 app.delete("/expense/:id", async (req, res) => {

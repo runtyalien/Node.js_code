@@ -1,98 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login Page</title>
     <style>
-        body {
-          font-family: Arial, Helvetica, sans-serif;
-          text-align: center;
-          background-color: #f0f0f0;
-        }
-  
-        h1 {
-          color: #333;
-        }
-  
-        form {
-          max-width: 400px;
-          margin: 0 auto;
-          padding: 20px;
-          background-color: #fff;
-          border-radius: 5px;
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-  
-        label {
-          display: block;
-          text-align: left;
-          margin-bottom: 5px;
-        }
-  
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
-          width: 100%;
-          padding: 10px;
-          margin-bottom: 15px;
-          border: 1px solid #ccc;
-          border-radius: 3px;
-        }
-  
-        button[type="submit"] {
-          background-color: #007bff;
-          color: #fff;
-          padding: 10px 20px;
-          border: none;
-          border-radius: 3px;
-          cursor: pointer;
-        }
-  
-        button[type="submit"]:hover {
-          background-color: #0056b3;
-        }
-      </style>
-</head>
-<body>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        text-align: center;
+        background-color: #f0f0f0;
+      }
+
+      h1 {
+        color: #333;
+      }
+
+      form {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      label {
+        display: block;
+        text-align: left;
+        margin-bottom: 5px;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+      }
+
+      button[type="submit"] {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      button[type="submit"]:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
     <form action="/login" method="post" id="loginForm">
-        <label for="email">Email: </label>
-        <input type="email" id="email" name="email" required>
+      <label for="email">Email: </label>
+      <input type="email" id="email" name="email" required />
 
-        <label for="password">Password: </label>
-        <input type="password" id="password" name="password" required>
+      <label for="password">Password: </label>
+      <input type="password" id="password" name="password" required />
 
-        <button type="submit">Login</button>
+      <button type="submit">Login</button>
     </form>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async(e) => {
-            e.preventDefault();
+      /*document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
 
-            try{
-                const response = await fetch('/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password })
-                });
+          try {
+            const response = await fetch("/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ email, password }),
+            });
 
-                const data = await response.json();
+            const data = await response.json();
 
-                if(response.status === 200){
-                    alert(data.message);
-                } else {
-                    alert(data.error);
-                }
-            } catch(error) {
-                console.log('Error', error);
-                    alert('An error has occurred');
+            if (response.status === 200) {
+              alert(data.message);
+              console.log(data);
+              if (data.token) {
+                localStorage.setItem("token", data.token);
+              } else {
+                console.error("Token not found in response data");
+              }
+            } else {
+              alert(data.error);
             }
-        })
+          } catch (error) {
+            console.log("Error", error);
+            alert("An error has occurred");
+          }
+        });*/
+
+
+
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    const response = await fetch("/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.status === 200) {
+      alert(data.message);
+      console.log(data);
+      if (data.token) {
+  localStorage.setItem("token", data.token);
+  console.log("Token stored in local storage:", data.token);
+} else {
+  console.error("Token not found in response data");
+}
+    } else {
+      alert(data.error);
+    }
+  } catch (error) {
+    console.log("Error", error);
+    alert("An error has occurred");
+  }
+});
+
     </script>
-</body>
+  </body>
 </html>

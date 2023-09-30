@@ -58,10 +58,13 @@
     </div>
     <script>
       function saveExpense(amount, description, category) {
+        const token = localStorage.getItem("token");
+
         fetch("/expense", {
           method: "POST",
           headers: {
             "content-type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ amount, description, category }),
         })

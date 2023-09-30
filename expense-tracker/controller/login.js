@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const crypto = require('crypto');
 
 const User = require("../model/user");
 
@@ -25,6 +27,13 @@ async function signUp(req, res) {
   }
 }
 
+/*const secretKey = crypto.randomBytes(32).toString('hex');
+console.log('Generated Secret Key:', secretKey);*/
+
+function generateAccessToken(id, name){
+  return jwt.sign({ userId : id, name: name }, 'aff135734abed1bf492684a890eb7d59081b5f44b23ded12a7339451b9bc2048')
+}
+
 async function login(req, res){
     const { email, password } = req.body;
   
@@ -42,8 +51,9 @@ async function login(req, res){
       const passwordMatch = await bcrypt.compare(password, user.password);
   
       if (passwordMatch) {
-        //res.status(200).json({ message: "Login successful" });
-        res.redirect('/expense');
+        res.status(200).json({success: true, message: "Login successful", token: generateAccessToken(user[0].id, user[0].name) });
+        //return res.redirect('/expense');
+
       } else {
         res.status(401).json({ error: "Invalid password" });
       }
