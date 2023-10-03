@@ -8,12 +8,38 @@
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
     />
-    <link rel="stylesheet" href="style.css" />
+    <style>
+      .heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      h1,
+      #premium {
+        margin: 0;
+      }
+      #premium {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      #premium:hover {
+        background-color: #0056b3;
+      }
+    </style>
     <title>Expense Tracker</title>
   </head>
   <body>
     <div class="container mt-5">
-      <h1>Your Expense Tracker</h1>
+      <div class="heading">
+        <h1>Your Expense Tracker</h1>
+        <button id="premium">Buy Premium</button>
+      </div>
+
       <form id="expense-form">
         <div class="form-group">
           <label for="amount">Amount</label>
@@ -210,6 +236,71 @@
       });
 
       displayExpenses();
+
+      //purchase premium
+      document.getElementById("premium").onclick = async function (e) {
+        const token = localStorage.getItem("token");
+
+        try {
+          const response = await fetch("/purchase/premium", {
+            method: "GET",
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const responseData = await response.json();
+
+          console.log(responseData);
+
+          var options = {
+            key: responseData.key_id,
+            order_id: responseData.order_id,
+            handler: async function (razorpayResponse) {
+              try {
+                const paymentResponse = await fetch("/purchase/updatepremium", {
+                  method: "post",//this get might cause an error so replaced it with POST
+                  headers: {
+                    Authorization: token,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    order_id: options.order_id,
+                    payment_id: razorpayResponse.razorpay_payment_id,
+                  }),
+                });
+
+                if (!paymentResponse.ok) {
+                  throw new Error(
+                    `HTTP error! Status: ${paymentResponse.status}`
+                  );
+                }
+
+                alert("You are a premium user now.");
+              } catch (error) {
+                console.error("Error processing payment:", error);
+              }
+            },
+          };
+        } catch (error) {
+          console.error("Error fetching premium data:", error);
+        }
+
+        const rzpl = new Razorpay(options);
+        rzpl.open();
+        e.preventDefault();
+
+        rzpl.on("payment.failed", function (response) {
+          console.log(response);
+          alert("Something went wrong");
+        });
+      };
     </script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   </body>
 </html>
