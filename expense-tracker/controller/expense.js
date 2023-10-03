@@ -23,36 +23,36 @@ async function addExpense(req, res) {
 };
 
 async function deleteExpense(req, res) {
-    const expenseId = req.params.id;
-    Expense.findByPk(expenseId)
-        .then((expense) => {
-            if(!expense){
-                return res.status(404).json({ error: 'Expense not found'});
-            }
-            return expense.destroy();
-        })
-        .then(() => {
-            console.log("Expense deleted");
-            res.status(204).send();
-        })
-        .catch((error) => {
-            console.log("Error deleting expense", error);
-            if(!res.headersSent){
-                res.status(500).json({error: 'Error deleting user'});
-            }
-        });
+  const expenseId = req.params.id;
+  Expense.findByPk(expenseId)
+    .then((expense) => {
+      if (!expense) {
+        return res.status(404).json({ error: "Expense not found" });
+      }
+      return expense.destroy();
+    })
+    .then(() => {
+      console.log("Expense deleted");
+      res.status(204).send();
+    })
+    .catch((error) => {
+      console.log("Error deleting expense", error);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Error deleting user" });
+      }
+    });
 };
 
 async function showExpense(req, res) {
-    User.findAll()
-        .then((expenses) => {
-            console.log('Users retrieved', expenses);
-            res.status(200).json(expenses);
-        })
-        .catch((error) => {
-            console.error('Error retrieving users:', error);
-            res.status(500).json({ error: 'Error retrieving users' });
-        })
+  Expense.findAll()
+    .then((expenses) => {
+      console.log("Users retrieved", expenses);
+      res.status(200).json(expenses);
+    })
+    .catch((error) => {
+      console.error("Error retrieving users:", error);
+      res.status(500).json({ error: "Error retrieving users" });
+    });
 };
 
 

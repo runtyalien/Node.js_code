@@ -102,43 +102,44 @@
           }
         });*/
 
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
 
-        document.getElementById("loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+          try {
+            const response = await fetch("/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ email, password }),
+            });
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+            const data = await response.json();
 
-  try {
-    const response = await fetch("/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+            if (response.status === 200) {
+              alert(data.message);
+              console.log(data);
+              if (data.token) {
+                localStorage.setItem("token", data.token);
+                console.log("Token stored in local storage:", data.token);
 
-    const data = await response.json();
-
-    if (response.status === 200) {
-      alert(data.message);
-      console.log(data);
-      if (data.token) {
-  localStorage.setItem("token", data.token);
-  console.log("Token stored in local storage:", data.token);
-} else {
-  console.error("Token not found in response data");
-}
-    } else {
-      alert(data.error);
-    }
-  } catch (error) {
-    console.log("Error", error);
-    alert("An error has occurred");
-  }
-});
-
+                window.location.href = '/expense';
+              } else {
+                console.error("Token not found in response data");
+              }
+            } else {
+              alert(data.error);
+            }
+          } catch (error) {
+            console.log("Error", error);
+            alert("An error has occurred");
+          }
+        });
     </script>
   </body>
 </html>

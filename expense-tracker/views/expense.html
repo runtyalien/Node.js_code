@@ -153,6 +153,8 @@
       }
 
       function displayExpenses() {
+        
+
         const expenseList = document.getElementById("expense-list");
         expenseList.innerHTML = "";
 
@@ -256,37 +258,51 @@
 
           const responseData = await response.json();
 
-          console.log(responseData);
+          console.log(response.status);
 
-          var options = {
-            key: responseData.key_id,
-            order_id: responseData.order_id,
-            handler: async function (razorpayResponse) {
-              try {
-                const paymentResponse = await fetch("/purchase/updatepremium", {
-                  method: "post",//this get might cause an error so replaced it with POST
-                  headers: {
-                    Authorization: token,
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    order_id: options.order_id,
-                    payment_id: razorpayResponse.razorpay_payment_id,
-                  }),
-                });
-
-                if (!paymentResponse.ok) {
-                  throw new Error(
-                    `HTTP error! Status: ${paymentResponse.status}`
+          if (responseData.premiumStatus === "Successfull") {
+            // Change the button text if the user is already a premium user
+            document.getElementById("premium").textContent =
+              "You are a premium user now";
+            alert("You are a premium user now.");
+          } else {
+            var options = {
+              key: responseData.key_id,
+              order_id: responseData.order_id,
+              handler: async function (razorpayResponse) {
+                try {
+                  const paymentResponse = await fetch(
+                    "/purchase/updatepremium",
+                    {
+                      method: "post",
+                      headers: {
+                        Authorization: token,
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        order_id: options.order_id,
+                        payment_id: razorpayResponse.razorpay_payment_id,
+                      }),
+                    }
                   );
-                }
 
-                alert("You are a premium user now.");
-              } catch (error) {
-                console.error("Error processing payment:", error);
-              }
-            },
-          };
+                  if (!paymentResponse.ok) {
+                    throw new Error(
+                      `HTTP error! Status: ${paymentResponse.status}`
+                    );
+                  }
+
+                  // Change the button text after successful payment
+                  document.getElementById("premium").textContent =
+                    "You are a premium user now";
+                  localStorage.setItem("isPremiumUser", "true");
+                  alert("You are a premium user now.");
+                } catch (error) {
+                  console.error("Error processing payment:", error);
+                }
+              },
+            };
+          }
         } catch (error) {
           console.error("Error fetching premium data:", error);
         }
