@@ -38,6 +38,7 @@
       <div class="heading">
         <h1>Your Expense Tracker</h1>
         <button id="premium">Buy Premium</button>
+        <button id="leaderboard">Show Leaderboard</button>
       </div>
 
       <form id="expense-form">
@@ -80,6 +81,16 @@
           </tr>
         </thead>
         <tbody id="expense-list"></tbody>
+      </table>
+      <!--Delete this original working changes-->
+      <table class="table mt-3" style="display: none" id="leaderboard-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Total Expenses</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-list"></tbody>
       </table>
     </div>
     <script>
@@ -153,8 +164,6 @@
       }
 
       function displayExpenses() {
-        
-
         const expenseList = document.getElementById("expense-list");
         expenseList.innerHTML = "";
 
@@ -315,6 +324,98 @@
           console.log(response);
           alert("Something went wrong");
         });
+      };
+
+      //show leaderboard
+      /*document.getElementById("leaderboard").onclick = async function (e) {
+        const token = localStorage.getItem("token");
+
+        fetch("/premium/showleaderboard", {
+          method: "GET",
+          headers: {
+            Authorization: token,
+            "Content-Type": "application/json"
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            const leaderboardList = document.getElementById("leaderboard-list");
+            leaderboardList.innerHTML = "";
+
+            // Populate the leaderboard table with user and total expenses data
+            data.forEach((entry) => {
+              const row = document.createElement("tr");
+              const userCell = document.createElement("td");
+              const expensesCell = document.createElement("td");
+
+              userCell.textContent = entry.user;
+              expensesCell.textContent = entry.totalExpenses;
+
+              row.appendChild(userCell);
+              row.appendChild(expensesCell);
+              leaderboardList.appendChild(row);
+            });
+
+            // Display the leaderboard table
+            const leaderboardTable = document.getElementById("leaderboard-table");
+            leaderboardTable.style.display = "table";
+          })
+          .catch((error) => {
+            console.error('Fetch Error:', error);
+          });
+      };*/
+
+      document.getElementById("leaderboard").onclick = async function (e) {
+        const token = localStorage.getItem("token");
+
+        fetch("/premium/showleaderboard", {
+          method: "GET",
+          headers: {
+            Authorization: token,
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            const leaderboardList = document.getElementById("leaderboard-list");
+            leaderboardList.innerHTML = "";
+
+            // Populate the leaderboard table with user data
+            data.forEach((entry) => {
+
+              console.log(entry.username);
+              console.log(entry.totalExpenses);
+              const row = document.createElement("tr");
+              const userCell = document.createElement("td");
+              const amountCell = document.createElement("td");
+
+              
+              userCell.textContent = entry.username; // Use the correct property name
+              amountCell.textContent = entry.totalExpenses;
+
+              row.appendChild(userCell);
+              row.appendChild(amountCell);
+              leaderboardList.appendChild(row);
+            });
+
+            // Display the leaderboard table
+            const leaderboardTable =
+              document.getElementById("leaderboard-table");
+            leaderboardTable.style.display = "table";
+          })
+          .catch((error) => {
+            console.error("Fetch Error:", error);
+          });
       };
     </script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>

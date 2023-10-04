@@ -5,8 +5,8 @@ const User = require("../model/user");
 async function buymembership(req, res){
     try {
       var rzp = new Razorpay({
-        key_id: 'rzp_test_NgSvjK0wZJZoOU',
-        key_secret: 'OjmOCbvC4W6frLQk5wbj1gWn',
+        key_id: 'rzp_test_QoPt2qoApi8pGX',
+        key_secret: 'qssh1nuGve421Rqg3e7TRoLr',
       });
       const amount = 25000;
       console.log('User ID:', req.userId);

@@ -10,7 +10,7 @@ const Expense = sequelize.define("expenses", {
       primaryKey: true,
     },
     amount: {
-      type: Sequelize.STRING,
+      type: Sequelize.INTEGER,
       allowNull: false,
     },
     description: {
@@ -19,6 +19,10 @@ const Expense = sequelize.define("expenses", {
     },
     category: {
       type: Sequelize.STRING,
+      allowNull: false,
+    },
+    userId: {
+      type: Sequelize.INTEGER, // Adjust the data type based on your user ID type
       allowNull: false,
     },
   });

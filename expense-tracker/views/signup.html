@@ -96,6 +96,7 @@
 
             if (response.status === 200) {
               alert("Sign up successful");
+              window.location.href = '/login';
             } else if (response.status === 400) {
               alert("email in use");
             } else {

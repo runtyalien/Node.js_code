@@ -11,6 +11,7 @@ const sequelize = require('./utils/database');
 const loginController = require("./controller/login");
 const expenseController = require("./controller/expense");
 const purchaseController = require("./controller/purchase");
+const premiumController = require("./controller/premium");
 
 //importing middleware
 //const extractUserId = require("./middleware/extractUserId");
@@ -96,27 +97,6 @@ async function extractUserId(req, res, next) {
   }
 }
 
-//new function delete and revert if does't work
-// Use the middleware in the /expense route
-/*app.post("/expense", extractUserId, async (req, res) => {
-  const { amount, description, category } = req.body;
-
-  try {
-    const expense = await Expense.create({
-      amount,
-      description,
-      category,
-      userexpenseId: req.userId,
-    });
-
-    console.log("Expense created", expense.toJSON());
-    res.status(201).json(expense);
-  } catch (error) {
-    console.log("Error creating expense", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});*/
-
 // Use the middleware in the /expense route
 app.post("/expense", extractUserId, async (req, res) => {
   const { amount, description, category } = req.body;
@@ -150,3 +130,6 @@ app.get('/purchase/premium', extractUserId, purchaseController.buymembership );
 
 //update purchase
 app.post('/purchase/updatepremium', extractUserId, purchaseController.updatetransaction );
+
+//show leaderboard
+app.get('/premium/showleaderboard',  premiumController.showleaderboard );

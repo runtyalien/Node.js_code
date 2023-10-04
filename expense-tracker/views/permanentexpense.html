@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" /> -->
+  <link rel="stylesheet" href="expenses.css">
+</head>
+
+<body>
+  <form id="addForm">
+    <div class="login-box">
+      <div class="login-header">
+        <header>Add All Your Expenses Here.</header>
+      </div>
+      <div class="input-box">
+        <input type="number" class="input-field" placeholder="Enter Your Expense Amount." autocomplete="off" required
+          id="amt">
+      </div>
+      <div class="input-box">
+        <input type="text" class="input-field" placeholder="Enter Your Product Discription." autocomplete="off" required
+          id="desc">
+      </div>
+      <div class="input-box">
+        <select id="categ" class="input-field" required>
+          <option value="">Select</option>
+          <option value="Fuel">Fuel</option>
+          <option value="Food">Food</option>
+          <option value="Movie">Movie</option>
+          <option value="Grocery">Grocery</option>
+          <option value="Electricity">Electricity</option>
+          <option value="Electricals">Electricals</option>
+          <option value="Others.">Others.</option>
+        </select>
+      </div>
+      <div class="input-submit">
+        <input type="submit" class="submit-btn" id="submit" />
+        <label for="submit">Submit</label>
+      </div>
+    </div>
+  </form>
+  <div id="buydiv">
+  </div>
+  <center>
+    <div class="input-box limit">
+      <select id="limit" class="input-field" onchange="setlimit()">
+        <option value="5">Select No of Limits per row default is 5</option>
+        <option value="7">7</option>
+        <option value="9">9</option>
+        <option value="13">13</option>
+        <option value="17">17</option>
+        <option value="20">20</option>
+      </select>
+    </div>
+
+    <div class="login-header">
+      <header id="exp"></header>
+    </div>
+    <table class="styled-table" id="styled-table">
+      <!-- <thead>
+        <tr>
+          <th>Sl.no</th>
+          <th>Amount</th>
+          <th>Description</th>
+          <th>Food</th>
+          <th>Delete</th>
+        </tr>
+      </thead> -->
+      <tbody class="boxx" id="boxx">
+        <!-- <tr>
+          <td>Dom</td>
+          <td>6000</td>
+          <td>6000</td>
+          <td><input type="button" value="Delete" class="delete-btn"></td>
+        </tr>
+        <tr class="active-row">
+          <td>Melissa</td>
+          <td>5150</td>
+          <td>6000</td>
+        </tr> -->
+      </tbody>
+    </table>
+    <div class="pagination"></div>
+    <br>
+    <br>
+    <div class="login-header">
+      <header id="leadhead"></header>
+    </div>
+
+    <table class="styled-table" id="styled-table2">
+      <!-- <thead>
+       <tr>
+         <th>Sl.no</th>
+         <th>Amount</th>
+         <th>Description</th>
+         <th>Food</th>
+         <th>Delete</th>
+       </tr>
+     </thead> -->
+      <tbody class="boxx" id="boxx2">
+        <!-- <tr>
+         <td>Dom</td>
+         <td>6000</td>
+         <td>6000</td>
+         <td><input type="button" value="Delete" class="delete-btn"></td>
+       </tr>
+       <tr class="active-row">
+         <td>Melissa</td>
+         <td>5150</td>
+         <td>6000</td>
+       </tr> -->
+      </tbody>
+    </table>
+  </center>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  var box = document.querySelector("#boxx");
+  var box2 = document.querySelector("#boxx2");
+  var thead = document.createElement('thead');
+  var thead2 = document.createElement('thead');
+  var page = 1;
+
+  var expdet = document.getElementById('exp');
+  var leadheadhead = document.getElementById('leadhead');
+
+
+  var tablee = document.querySelector('#styled-table')
+  var tableee = document.querySelector('#styled-table2')
+
+  document.getElementById('addForm').addEventListener('submit', addele);
+  const boax = document.getElementById('buydiv');
+  if(localStorage.getItem('limit')!==null){
+   
+  }else{
+    localStorage.setItem('limit', 5)
+
+  }
+  window.addEventListener('DOMContentLoaded', () => {
+    pageloader();
+  })
+  async function pageloader() {
+    const token = localStorage.getItem('token');
+    const limit = localStorage.getItem('limit');
+
+    const result1 = await axios.get('http://localhost:3000/expenses/load/' + page + '/' + limit, { headers: { "Authorization": token } })
+    const result = result1.data.result
+    const user = result1.data.user.isPremiumUser
+    const pagination = result1.data.pagination.lastpage;
+    if (user === false) {
+      const butt = document.createElement('button');
+      butt.id = 'buy_premium';
+      butt.innerHTML = 'Buy Premimum';
+      butt.className = "buypre-btn"
+      boax.appendChild(butt);
+      document.getElementById('buy_premium').addEventListener('click', buypre);
+    } else {
+      const butt = document.createElement('h2');
+      butt.innerHTML = 'You are a premium user';
+      butt.style.color = 'green'
+      const butt2 = document.createElement('button');
+      const butt3 = document.createElement('button');
+      const butt4 = document.createElement('button');
+      butt2.id = 'show_leader';
+      butt2.innerHTML = 'Show leaderboard';
+      butt2.className = "buypre-btn"
+
+      butt3.id = 'down_report';
+      butt3.innerHTML = 'Generate And Download Report';
+      butt3.className = "buypre-btn2"
+
+      butt4.id = 'pastrep';
+      butt4.innerHTML = 'Download Past Generated Report';
+      butt4.className = "buypre-btn2"
+      boax.appendChild(butt);
+      boax.appendChild(butt2);
+      boax.appendChild(butt3);
+      boax.appendChild(butt4);
+      document.getElementById('show_leader').addEventListener('click', showleaderf);
+      document.getElementById('down_report').addEventListener('click', downloadrep);
+      document.getElementById('pastrep').addEventListener('click', pastreports);
+    }
+    loadexp(result, pagination);
+  }
+  async function loadpagei(page) {
+    if (page == 1) {
+    } else {
+      for (var i = 1; i <= page; i++) {
+        const pagination1 = document.querySelector('.pagination');
+        const but = document.createElement('button')
+        but.innerHTML = i;
+        but.className = "pagibutt"
+        but.value = i
+        pagination1.appendChild(but)
+        but.addEventListener('click', pagei);
+      }
+    }
+  }
+  async function pagei(e) {
+    const pagination1 = document.querySelector('.pagination');
+
+    while (thead.firstChild) {
+      thead.removeChild(thead.firstChild);
+    }
+    while (box.firstChild) {
+      box.removeChild(box.firstChild);
+    }
+    while(pagination1.firstChild){
+      pagination1.removeChild(pagination1.firstChild)
+    }
+    const page = e.target.value
+    const token = localStorage.getItem('token');
+    const limit = localStorage.getItem('limit');
+    const result1 = await axios.get('http://localhost:3000/expenses/load/' + page + '/' + limit, { headers: { "Authorization": token } })
+    const result = result1.data.result
+    const pagination = result1.data.pagination.lastpage;
+    loadexp(result, pagination);
+
+  }
+  async function loadexp(result, pagination) {
+    var count = 0;
+    result.forEach(element => {
+      count++;
+      if (count == 1) {
+        expdet.innerHTML = "Here is all your expenses"
+        var tr0 = document.createElement('tr');
+        var th0 = document.createElement('th');
+        th0.innerHTML = "Srl.no"
+        var th1 = document.createElement('th');
+        th1.innerHTML = "Amount"
+        var th2 = document.createElement('th');
+        th2.innerHTML = "Description"
+        var th3 = document.createElement('th');
+        th3.innerHTML = "Category"
+        var th4 = document.createElement('th');
+        th4.innerHTML = "Button"
+        thead.className = "thead"
+        tablee.appendChild(thead);
+        thead.appendChild(tr0);
+        tr0.appendChild(th0);
+        tr0.appendChild(th1);
+        tr0.appendChild(th2);
+        tr0.appendChild(th3);
+        tr0.appendChild(th4);
+      }
+      var tr = document.createElement('tr');
+      var td0 = document.createElement('td');
+      var td1 = document.createElement('td');
+      var td2 = document.createElement('td');
+      var td3 = document.createElement('td');
+      var delbtn = document.createElement('input');
+      var idstore = document.createElement('input');
+      delbtn.type = 'button'
+      delbtn.value = "Delete"
+      delbtn.className = "delete-btn"
+      idstore.value = element._id
+      idstore.type = 'hidden'
+      td0.innerHTML = count;
+      td1.innerHTML = element.expenseamount;
+      td2.innerHTML = element.description;
+      td3.innerHTML = element.category;
+      if (count % 2 == 0) {
+        tr.className = "active-row"
+      }
+      box.appendChild(tr);
+      tr.appendChild(idstore);
+      tr.appendChild(td0);
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+      tr.appendChild(td3);
+      tr.appendChild(delbtn);
+      delbtn.addEventListener('click', delf);
+    });
+    loadpagei(pagination);
+
+  }
+  async function addele(e) {
+    const token = localStorage.getItem('token');
+    e.preventDefault()
+    var amou = document.getElementById('amt').value;
+    var descr = document.getElementById('desc').value;
+    var catego = document.getElementById('categ').value;
+    const config = {
+      method: 'POST',
+      url: 'http://localhost:3000/expenses/user',
+      data: {
+        "amt": amou,
+        "des": descr,
+        "cat": catego
+      },
+      headers: { "Authorization": token }
+    }
+    await axios(config)
+      .then(() => {
+        console.log("added")
+      }
+      )
+      .catch((err) => {
+        console.log(err)
+      });
+    await delall();
+    await pageloader();
+  }
+  async function delall() {
+    const pagination1 = document.querySelector('.pagination');
+
+    return new Promise((resolve, reject) => {
+      while(pagination1.firstChild){
+      pagination1.removeChild(pagination1.firstChild)
+    }
+      while (thead.firstChild) {
+        thead.removeChild(thead.firstChild);
+      }
+      while (thead2.firstChild) {
+        thead2.removeChild(thead2.firstChild);
+      }
+      while (box.firstChild) {
+        box.removeChild(box.firstChild);
+      }
+      while (box2.firstChild) {
+        box2.removeChild(box2.firstChild);
+      }
+      while (boax.firstChild) {
+        boax.removeChild(boax.firstChild);
+      }
+      resolve()
+    })
+  }
+  async function delf(e) {
+    const token = localStorage.getItem('token');
+    var par = e.target.parentElement;
+    var fc = par.firstChild;
+    var id = fc.value
+    const config = {
+      method: 'delete',
+      url: 'http://localhost:3000/expenses/del/' + id,
+      headers: { "Authorization": token }
+    }
+    const ans = await axios(config);
+    await delall();
+    await pageloader();
+  }
+  async function buypre() {
+    const token = localStorage.getItem('token');
+    await axios.get('http://localhost:3000/purchase/membership', { headers: { 'Authorization': token } })
+      .then((result) => {
+        var options = {
+          "key": result.data.key_id,
+          "order_id": result.data.order.id,
+          "handler": async function (result) {
+            await axios.post('http://localhost:3000/purchase/updatetransaction', {
+              order_id: options.order_id,
+              payment_id: result.razorpay_payment_id,
+            }, { headers: { 'Authorization': token } })
+            alert("you are a premium user now")
+            await delall();
+            await pageloader();
+          }
+        }
+        const rzp1 = new Razorpay(options);
+        rzp1.open();
+        e.preventDefault;
+        rzp1.on('payment.failed', function (response) {
+          console.log(response);
+          alert('something went wrong');
+        })
+      })
+  }
+  async function showleaderf() {
+    const token = localStorage.getItem('token');
+    const data = await axios.get("http://localhost:3000/premium/showleaderboard", { headers: { 'Authorization': token } })
+    var count = 0;
+    var show_leader1 = document.getElementById("show_leader")
+    if (show_leader1.innerHTML == "Hide Leaderboard") {
+      show_leader1.innerHTML = "Show Leaderboard"
+      leadheadhead.innerHTML = ""
+      thead2.innerHTML = ""
+      box2.innerHTML = ""
+      return;
+    }
+    data.data.user.forEach((element) => {
+      count++;
+      if (count == 1) {
+        leadheadhead.innerHTML = "Here is the Leaderboard"
+        var tr0 = document.createElement('tr');
+        var th0 = document.createElement('th');
+        th0.innerHTML = "Srl.no"
+        var th1 = document.createElement('th');
+        th1.innerHTML = "Name"
+        var th2 = document.createElement('th');
+        th2.innerHTML = "Total Expenses"
+        tableee.appendChild(thead2);
+        thead2.appendChild(tr0);
+        tr0.appendChild(th0);
+        tr0.appendChild(th1);
+        tr0.appendChild(th2);
+      }
+      var tr = document.createElement('tr');
+      var td0 = document.createElement('td');
+      var td1 = document.createElement('td');
+      var td2 = document.createElement('td');
+      td0.innerHTML = count;
+      td1.innerHTML = element.name;
+      td2.innerHTML = element.total_exp;
+      if (count % 2 == 0) {
+        tr.className = "active-row"
+      }
+      box2.appendChild(tr);
+      tr.appendChild(td0);
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+      show_leader1.innerHTML = "Hide Leaderboard"
+    });
+  }
+  async function downloadrep() {
+    window.location.href = "./downloadrep.html"
+
+  }
+  async function pastreports() {
+    window.location.href = "./pastreports.html"
+
+  }
+  function setlimit() {
+    var limits = document.getElementById('limit')
+    localStorage.setItem("limit", limits.value)
+  }
+</script>
+
+</html>
