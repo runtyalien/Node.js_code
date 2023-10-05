@@ -26,6 +26,9 @@ const User = sequelize.define(
         type: Sequelize.BOOLEAN,
         allowNull: false,
       },
+      total: {
+        type: Sequelize.INTEGER,
+      },
     },
     {
       timestamps: false,

@@ -88,8 +88,15 @@ async function extractUserId(req, res, next) {
       return res.status(401).json({ error: "Unauthorized - Missing userId" });
     }
 
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized - User not found" });
+    }
+
     // Set userId in the request object for later use
     req.userId = userId;
+    req.user = user;
     next();
   } catch (error) {
     console.log("Error decoding token", error);
@@ -99,7 +106,7 @@ async function extractUserId(req, res, next) {
 
 // Use the middleware in the /expense route
 app.post("/expense", extractUserId, async (req, res) => {
-  const { amount, description, category } = req.body;
+  /*const { amount, description, category } = req.body;
 
   try {
     const expense = await Expense.create({
@@ -114,10 +121,55 @@ app.post("/expense", extractUserId, async (req, res) => {
   } catch (error) {
     console.log("Error creating expense", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }*/
+
+  const { amount, description, category } = req.body;
+
+  try {
+    const expense = await Expense.create({
+      amount,
+      description,
+      category,
+      userexpenseId: req.userId,
+    });
+
+    const totalExpense = Number(req.user.total) + Number(amount)
+    console.log(totalExpense);
+
+    User.update({
+      total: totalExpense
+    }, {
+      where: {id : req.userId}
+    })
+
+    console.log("Expense ", expense.toJSON());
+    res.status(201).json(expense);
+    console.log("User total updated", req.user.total);
+  } catch (err) {
+    console.error("Error catching expense", err);
+    res.status(500).json({ error: "Errors catching expense" });
   }
 });
 
+async function total (req, res) {
+  try {
+      const users = User.findAll();
 
+      for(const user of users){
+          const totalExpenses = await Expense.sum('amount', {
+              where: { userexpenseId : user.id },
+          });
+
+          await User.update(
+              {total : totalExpenses || 0 },
+              {where : { id: user.id }}
+          );
+      }
+      res.json({message: "Total Expenses updated successfully"});
+  } catch(error){
+      console.log(error);
+  }
+}
 
 app.delete("/expense/:id", expenseController.deleteExpense );
 

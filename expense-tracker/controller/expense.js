@@ -1,9 +1,35 @@
 const express = require("express");
 const router = express.Router();
-
+const sequelize = require("../utils/database");
 const Expense = require("../model/expense");
+const user = require("../model/user");
 
 async function addExpense(req, res) {
+  const { amount, description, category } = req.body;
+
+  try {
+    const expense = await Expense.create({
+      amount,
+      description,
+      category,
+      userexpenseId
+    });
+
+    const totalExpense = Number(req.user.total) + Number(amount)
+    console.log(totalExpense);
+
+    console.log("Expense ", expense.toJSON());
+    res.status(201).json(expense);
+    console.log("User total updated", user.total);
+  } catch (err) {
+    console.error("Error catching expense", err);
+    res.status(500).json({ error: "Errors catching expense" });
+  }
+};
+
+
+
+/*async function addExpense(req, res) {
   const { amount, description, category } = req.body;
 
   Expense.create({
@@ -20,7 +46,7 @@ async function addExpense(req, res) {
       console.error("Error catching expense", err);
       res.status(500).json({ error: "Errors catching expense" });
     });
-};
+};*/
 
 async function deleteExpense(req, res) {
   const expenseId = req.params.id;
@@ -41,7 +67,7 @@ async function deleteExpense(req, res) {
         res.status(500).json({ error: "Error deleting user" });
       }
     });
-};
+}
 
 async function showExpense(req, res) {
   Expense.findAll()
@@ -53,11 +79,10 @@ async function showExpense(req, res) {
       console.error("Error retrieving users:", error);
       res.status(500).json({ error: "Error retrieving users" });
     });
-};
-
+}
 
 module.exports = {
   addExpense,
   deleteExpense,
-  showExpense
+  showExpense,
 };

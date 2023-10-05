@@ -21,10 +21,6 @@ const Expense = sequelize.define("expenses", {
       type: Sequelize.STRING,
       allowNull: false,
     },
-    userId: {
-      type: Sequelize.INTEGER, // Adjust the data type based on your user ID type
-      allowNull: false,
-    },
   });
 
 module.exports = Expense;
