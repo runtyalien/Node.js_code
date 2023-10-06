@@ -3,71 +3,85 @@ const router = express.Router();
 const sequelize = require("../utils/database");
 const Expense = require("../model/expense");
 const user = require("../model/user");
+const User = require("../model/user");
 
 async function addExpense(req, res) {
-  const { amount, description, category } = req.body;
+  const t = await sequelize.transaction();
 
   try {
-    const expense = await Expense.create({
-      amount,
-      description,
-      category,
-      userexpenseId
-    });
+    const { amount, description, category } = req.body;
 
-    const totalExpense = Number(req.user.total) + Number(amount)
-    console.log(totalExpense);
+    const expense = await Expense.create(
+      {
+        amount,
+        description,
+        category,
+        //userexpenseId: req.userId,
+      },
+      { transaction: t }
+    );
 
-    console.log("Expense ", expense.toJSON());
+    const totalExpense = Number(req.user.total) + Number(amount);
+
+    await User.update(
+      { total: totalExpense },
+      {
+        where: { id: req.userId },
+        transaction: t,
+      }
+    );
+
+    // Commit the transaction
+    await t.commit();
+
+    console.log("Expense created", expense.toJSON());
+    console.log("User total updated", totalExpense);
     res.status(201).json(expense);
-    console.log("User total updated", user.total);
   } catch (err) {
-    console.error("Error catching expense", err);
-    res.status(500).json({ error: "Errors catching expense" });
+    // Rollback the transaction in case of an error
+    await t.rollback();
+
+    console.error("Error creating expense or updating user total", err);
+    res.status(500).json({ success: false, error: err.message });
   }
-};
-
-
-
-/*async function addExpense(req, res) {
-  const { amount, description, category } = req.body;
-
-  Expense.create({
-    amount,
-    description,
-    category,
-  })
-    .then((expense) => {
-      console.log("Expense created", expense.toJSON());
-      console.log(expense);
-      res.status(201).json(expense);
-    })
-    .catch((err) => {
-      console.error("Error catching expense", err);
-      res.status(500).json({ error: "Errors catching expense" });
-    });
-};*/
+}
 
 async function deleteExpense(req, res) {
   const expenseId = req.params.id;
-  Expense.findByPk(expenseId)
-    .then((expense) => {
-      if (!expense) {
-        return res.status(404).json({ error: "Expense not found" });
-      }
-      return expense.destroy();
-    })
-    .then(() => {
-      console.log("Expense deleted");
-      res.status(204).send();
-    })
-    .catch((error) => {
-      console.log("Error deleting expense", error);
-      if (!res.headersSent) {
-        res.status(500).json({ error: "Error deleting user" });
-      }
-    });
+  const t = await  sequelize.transaction();
+
+  try {
+    const expense = await Expense.findByPk(expenseId);
+
+    if (!expense) {
+      return res.status(404).json({ error: "Expense not found" });
+    }
+    
+    const user = await User.findByPk(expense.userexpenseId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const totalExpense = Number(user.total) - Number(expense.amount);
+    console.log(totalExpense);
+
+    await expense.destroy();
+
+    // Update user's total expense
+    await User.update({ total: totalExpense }, { where: { id: user.id }, transaction: t });
+
+    await t.commit();
+
+    console.log("Expense deleted");
+    res.status(204).send();
+  } catch (error) {
+    await t.rollback();
+    console.log("Error deleting expense", error);
+    res.status(500).json({ error: "Error deleting user" });
+  }
 }
+
 
 async function showExpense(req, res) {
   Expense.findAll()

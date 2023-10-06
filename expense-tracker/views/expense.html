@@ -232,6 +232,7 @@
           description: descriptionInput,
           category: categoryInput,
         });
+        window.location.reload();
       });
 
       displayExpenses();
@@ -339,15 +340,15 @@
             // Populate the leaderboard table with user data
             data.forEach((entry) => {
 
-              console.log(entry.username);
-              console.log(entry.totalExpenses);
+              console.log(entry.name);
+              console.log(entry.total);
               const row = document.createElement("tr");
               const userCell = document.createElement("td");
               const amountCell = document.createElement("td");
 
               
               userCell.textContent = entry.name; 
-              amountCell.textContent = entry.totalExpenses;
+              amountCell.textContent = entry.total;
 
               row.appendChild(userCell);
               row.appendChild(amountCell);

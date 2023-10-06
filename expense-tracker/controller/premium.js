@@ -34,7 +34,7 @@ const sequelize = require("../utils/database");
 }*/
 
 async function showleaderboard(req, res) {
-  try {
+  /*try {
     // Fetch all users with total expenses
     const usersWithTotalExpenses = await User.findAll({
       attributes: [
@@ -63,6 +63,21 @@ async function showleaderboard(req, res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Something went wrong" });
+  }*/
+
+  try{
+    const leaderboardofExpenses = await User.findAll({
+      order: [['total', 'DESC']]
+    })
+
+    leaderboardofExpenses.forEach(user => {
+      console.log(`User: ${user.name}, Total Expense: ${user.total}`);
+    });
+
+    res.status(200).json(leaderboardofExpenses);
+  } catch(err){
+    console.log(err);
+    res.status(500).json(err);
   }
 }
 
