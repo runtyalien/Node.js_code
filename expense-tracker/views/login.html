@@ -63,45 +63,10 @@
       <input type="password" id="password" name="password" required />
 
       <button type="submit">Login</button>
+      <button id="forgot"><a href="./forgotpass.html">Forgot Password</a></button>
     </form>
 
     <script>
-      /*document
-        .getElementById("loginForm")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-
-          try {
-            const response = await fetch("/login", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ email, password }),
-            });
-
-            const data = await response.json();
-
-            if (response.status === 200) {
-              alert(data.message);
-              console.log(data);
-              if (data.token) {
-                localStorage.setItem("token", data.token);
-              } else {
-                console.error("Token not found in response data");
-              }
-            } else {
-              alert(data.error);
-            }
-          } catch (error) {
-            console.log("Error", error);
-            alert("An error has occurred");
-          }
-        });*/
-
       document
         .getElementById("loginForm")
         .addEventListener("submit", async (e) => {
@@ -140,6 +105,9 @@
             alert("An error has occurred");
           }
         });
+
+        //forgot password
+        
     </script>
   </body>
 </html>
