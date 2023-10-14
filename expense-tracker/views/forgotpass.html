@@ -81,9 +81,9 @@
                 const data = await response.json();
 
                 if(response.status === 200){
-                    alert(data.message);
+                    alert(data.uuid);
                     console.log(data);
-                    window.location.href = "/login"
+                    window.location.href = "/password/resetpassword/:resetpasswordid"
                 } else {
                     alert(data.error);
                 }

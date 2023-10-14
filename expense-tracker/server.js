@@ -3,8 +3,9 @@ const bodyParser = require("body-parser");
 const Sequelize = require("sequelize");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const Razorpay = require('razorpay');
-const sequelize = require('./utils/database');
+const Razorpay = require("razorpay");
+const sequelize = require("./utils/database");
+
 
 
 //importing controllers
@@ -18,7 +19,7 @@ const forgotController = require("./controller/forgotpassword");
 //const extractUserId = require("./middleware/extractUserId");
 const Expense = require("./model/expense");
 const User = require("./model/user");
-
+const Forgot = require("./model/forgotpasswordrequests");
 
 const app = express();
 const port = 3000;
@@ -28,6 +29,8 @@ app.use(bodyParser.json());
 User.hasMany(Expense);
 Expense.belongsTo(User);
 
+//User.hasMany(Forgot);
+//Forgot.belongsTo(User);
 //app.use(express.static("public"));
 
 function generateAccessToken(id, name) {
@@ -49,7 +52,13 @@ app.get("/expense", (req, res) => {
   res.sendFile(__dirname + "/views/expense.html");
 });
 
+app.get("/password/forgotpassword", (req, res) => {
+  res.sendFile(__dirname + "/views/forgotpass.html");
+});
 
+app.get("/password/resetpassword/:resetpasswordid", (req, res) => {
+  res.sendFile(__dirname + "/views/updatepassword.html");
+})
 
 sequelize
   .sync({})
@@ -67,16 +76,20 @@ app.post("/signup", loginController.signUp);
 
 // Login functionality
 
-app.post("/login", loginController.login );
+app.post("/login", loginController.login);
 
-app.post("/password/forgotpassword", forgotController.forgotpass);
+app.post("/password/forgotpassword", forgotController.resetpass);
+
+app.post("/password/resetpassword/:id", forgotController.updatepassword)
 
 // Middleware to extract userId from JWT token
 async function extractUserId(req, res, next) {
   const token = req.header("Authorization");
 
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized - Missing Authorization header" });
+    return res
+      .status(401)
+      .json({ error: "Unauthorized - Missing Authorization header" });
   }
 
   try {
@@ -118,14 +131,17 @@ app.post("/expense", extractUserId, async (req, res) => {
       userexpenseId: req.userId,
     });
 
-    const totalExpense = Number(req.user.total) + Number(amount)
+    const totalExpense = Number(req.user.total) + Number(amount);
     console.log(totalExpense);
 
-    User.update({
-      total: totalExpense
-    }, {
-      where: {id : req.userId}
-    })
+    User.update(
+      {
+        total: totalExpense,
+      },
+      {
+        where: { id: req.userId },
+      }
+    );
 
     console.log("Expense ", expense.toJSON());
     res.status(201).json(expense);
@@ -138,15 +154,19 @@ app.post("/expense", extractUserId, async (req, res) => {
 
 app.delete("/expense/:id", expenseController.deleteExpense);
 
-app.get("/expenses", expenseController.showExpense );
+app.get("/expenses", expenseController.showExpense);
 
 //buy premium
 
 // Use the middleware in the /purchase/premium route
-app.get('/purchase/premium', extractUserId, purchaseController.buymembership );
+app.get("/purchase/premium", extractUserId, purchaseController.buymembership);
 
 //update purchase
-app.post('/purchase/updatepremium', extractUserId, purchaseController.updatetransaction );
+app.post(
+  "/purchase/updatepremium",
+  extractUserId,
+  purchaseController.updatetransaction
+);
 
 //show leaderboard
-app.get('/premium/showleaderboard',  premiumController.showleaderboard );
+app.get("/premium/showleaderboard", premiumController.showleaderboard);

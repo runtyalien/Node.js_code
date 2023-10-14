@@ -63,7 +63,7 @@
       <input type="password" id="password" name="password" required />
 
       <button type="submit">Login</button>
-      <button id="forgot"><a href="./forgotpass.html">Forgot Password</a></button>
+      <button id="forgot">Forgot Password</button>
     </form>
 
     <script>
@@ -73,6 +73,7 @@
           e.preventDefault();
 
           const email = document.getElementById("email").value;
+          console.log(email);
           const password = document.getElementById("password").value;
 
           try {
@@ -107,7 +108,9 @@
         });
 
         //forgot password
-        
+        document.getElementById("forgot").addEventListener("click", async (e) => {
+          window.location.href = '/password/forgotpassword';
+        })
     </script>
   </body>
 </html>
