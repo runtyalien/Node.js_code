@@ -35,7 +35,7 @@ async function resetpass (req, res) {
       },
     ];
 
-    const userId = uuid.v4(); // backend will automatically read it no need to worry
+    const userId = uuid.v4(); 
     console.log(userId);
 
     tranEmailApi
@@ -61,32 +61,10 @@ async function resetpass (req, res) {
         res.status(404).json({ message: "Email not found" });
       }
   } catch (err) {
-    console.error("Error in forgot password route:", err); // Log the error
+    console.error("Error in forgot password route:", err);
     res.status(400).json({ message: "an error occurred!", error_msg: err.message });
   }
 }
-
-/*async function updatepassword (req, res) {
-  try {
-    const { id } = req.params;
-    const { newpassword } = req.query;
-    console.log('ID:', id);
-    console.log('New Password:', newpassword);
-
-    const users = await Forgot.findOne({ where: id });
-
-    if (!users) {
-      return res.status(404).json ({ success: false, message: 'User not found' });
-    }
-
-    const hashedPassword = await bcrypt.hash(newpassword, 10);
-    const user = await User.update({ password: hashedPassword }, { where: { id:UserId } });
-    console.log(user.password);
-    
-  } catch (err) {
-    res.status(200).json ({ success: true, message: 'error occured' })
-  }
-}*/
 
 async function updatepassword(req, res) {
   try {

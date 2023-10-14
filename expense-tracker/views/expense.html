@@ -51,6 +51,7 @@
         <h1>Your Expense Tracker</h1>
         <button id="premium">Buy Premium</button>
         <button id="leaderboard">Show Leaderboard</button>
+        <button id="download" style="display: none;">Download Expenses</button>
       </div>
 
       <form id="expense-form">
@@ -183,12 +184,18 @@
               const row = document.createElement("tr");
               row.id = `expense-${expense.id}`;
 
+              const expenseDate = expense.createdAt;
+              const dateOptions = {day: '2-digit', month: '2-digit', year: 'numeric'};
+              const formattedDate = expenseDate.toString('en-IN', dateOptions);
+
+              const datecell = document.createElement("td");
               const amountCell = document.createElement("td");
               const descriptionCell = document.createElement("td");
               const categoryCell = document.createElement("td");
               const deleteCell = document.createElement("td");
               const deleteButton = document.createElement("button");
 
+              datecell.textContent = formattedDate;
               amountCell.textContent = expense.amount;
               descriptionCell.textContent = expense.description;
               categoryCell.textContent = expense.category;
@@ -200,6 +207,7 @@
               });
 
               deleteCell.appendChild(deleteButton);
+              row.appendChild(datecell);
               row.appendChild(amountCell);
               row.appendChild(descriptionCell);
               row.appendChild(categoryCell);
@@ -237,6 +245,7 @@
 
       displayExpenses();
 
+      const downloadbutton = document.getElementById("download");
       //purchase premium
       document.getElementById("premium").onclick = async function (e) {
         const token = localStorage.getItem("token");
@@ -263,6 +272,7 @@
             document.getElementById("premium").textContent =
               "You are a premium user now";
             alert("You are a premium user now.");
+            downloadbutton.style.display = 'block';
           } else {
             var options = {
               key: responseData.key_id,
