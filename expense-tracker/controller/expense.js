@@ -2,8 +2,11 @@ const express = require("express");
 const router = express.Router();
 const sequelize = require("../utils/database");
 const Expense = require("../model/expense");
-const user = require("../model/user");
 const User = require("../model/user");
+const AWS = require("aws-sdk");
+const UserServices = require('../services/userServices');
+const S3Services = require('../services/S3services');
+const Download = require('../model/filesdownloaded');
 
 async function addExpense(req, res) {
   const t = await sequelize.transaction();
@@ -48,7 +51,7 @@ async function addExpense(req, res) {
 
 async function deleteExpense(req, res) {
   const expenseId = req.params.id;
-  const t = await  sequelize.transaction();
+  const t = await sequelize.transaction();
 
   try {
     const expense = await Expense.findByPk(expenseId);
@@ -56,7 +59,7 @@ async function deleteExpense(req, res) {
     if (!expense) {
       return res.status(404).json({ error: "Expense not found" });
     }
-    
+
     const user = await User.findByPk(expense.userexpenseId);
 
     if (!user) {
@@ -69,7 +72,10 @@ async function deleteExpense(req, res) {
     await expense.destroy();
 
     // Update user's total expense
-    await User.update({ total: totalExpense }, { where: { id: user.id }, transaction: t });
+    await User.update(
+      { total: totalExpense },
+      { where: { id: user.id }, transaction: t }
+    );
 
     await t.commit();
 
@@ -82,21 +88,46 @@ async function deleteExpense(req, res) {
   }
 }
 
-
 async function showExpense(req, res) {
-  Expense.findAll()
-    .then((expenses) => {
-      console.log("Users retrieved", expenses);
-      res.status(200).json(expenses);
-    })
-    .catch((error) => {
-      console.error("Error retrieving users:", error);
-      res.status(500).json({ error: "Error retrieving users" });
+  try {
+    const userId = req.userId;
+
+    const expenses = await Expense.findAll({
+      where: { userexpenseId: userId },
     });
+
+    console.log("Expenses retrived", expenses);
+    res.status(200).json(expenses);
+  } catch (error) {
+    console.error("Error retrieving expense", error);
+    res.status(500).json({ error: "Error retrieving expense" });
+  }
 }
+
+const downloadExpense = async (req, res) => {
+  try {
+    const expenses = await UserServices.getExpenses(req);
+
+    const stringifiedExpenses = JSON.stringify(expenses);
+
+    const userId = req.user.id;
+    const filename = `Expense${userId}/${new Date()}.txt`;
+    const fileURL = await S3Services.uploadToS3(stringifiedExpenses, filename);
+
+    console.log(fileURL);
+
+    const download = await Download.create({fileURL});
+    console.log(download.fileURL);
+    res.status(200).json({ fileURL, success: true });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ fileURL: "", success: false });
+  }
+};
 
 module.exports = {
   addExpense,
   deleteExpense,
   showExpense,
+  downloadExpense,
 };

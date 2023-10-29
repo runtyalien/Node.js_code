@@ -15,7 +15,8 @@
         justify-content: space-between;
       }
       h1,
-      #premium, #leaderboard {
+      #premium,
+      #leaderboard {
         margin: 0;
       }
       #premium {
@@ -42,6 +43,18 @@
       #leaderboard:hover {
         background-color: #0056b3;
       }
+      #download {
+        background-color: #007bff;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      #download:hover {
+        background-color: #0056b3;
+      }
     </style>
     <title>Expense Tracker</title>
   </head>
@@ -51,7 +64,7 @@
         <h1>Your Expense Tracker</h1>
         <button id="premium">Buy Premium</button>
         <button id="leaderboard">Show Leaderboard</button>
-        <button id="download" style="display: none;">Download Expenses</button>
+        <button id="download">Download Expenses</button>
       </div>
 
       <form id="expense-form">
@@ -177,7 +190,18 @@
         const expenseList = document.getElementById("expense-list");
         expenseList.innerHTML = "";
 
-        fetch("/expenses")
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          console.error("Token is missing. User not authenticated");
+          return;
+        }
+
+        fetch("/expenses", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
           .then((response) => response.json())
           .then((expenses) => {
             expenses.forEach((expense) => {
@@ -185,8 +209,12 @@
               row.id = `expense-${expense.id}`;
 
               const expenseDate = expense.createdAt;
-              const dateOptions = {day: '2-digit', month: '2-digit', year: 'numeric'};
-              const formattedDate = expenseDate.toString('en-IN', dateOptions);
+              const dateOptions = {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              };
+              const formattedDate = expenseDate.toString("en-IN", dateOptions);
 
               const datecell = document.createElement("td");
               const amountCell = document.createElement("td");
@@ -245,7 +273,6 @@
 
       displayExpenses();
 
-      const downloadbutton = document.getElementById("download");
       //purchase premium
       document.getElementById("premium").onclick = async function (e) {
         const token = localStorage.getItem("token");
@@ -272,7 +299,7 @@
             document.getElementById("premium").textContent =
               "You are a premium user now";
             alert("You are a premium user now.");
-            downloadbutton.style.display = 'block';
+            downloadbutton.style.display = "block";
           } else {
             var options = {
               key: responseData.key_id,
@@ -326,7 +353,6 @@
       };
 
       //show leaderboard
-
       document.getElementById("leaderboard").onclick = async function (e) {
         const token = localStorage.getItem("token");
 
@@ -349,15 +375,13 @@
 
             // Populate the leaderboard table with user data
             data.forEach((entry) => {
-
               console.log(entry.name);
               console.log(entry.total);
               const row = document.createElement("tr");
               const userCell = document.createElement("td");
               const amountCell = document.createElement("td");
 
-              
-              userCell.textContent = entry.name; 
+              userCell.textContent = entry.name;
               amountCell.textContent = entry.total;
 
               row.appendChild(userCell);
@@ -373,6 +397,78 @@
           .catch((error) => {
             console.error("Fetch Error:", error);
           });
+      };
+
+      //download expenses
+      /*document.getElementById("download").onclick = async function (e) {
+        const token = localStorage.getItem("token");
+         
+        try {
+          const response = await fetch("/download", {
+            method: "GET",
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+           
+          }
+
+          var a = document.createElement("a");
+            a.href = response.data.fileURL;
+            a.download = 'myexpense.csv';
+            a.click();
+          //const expenses = await response.json();
+
+          // Log expenses to the console
+          //console.log("User Expenses:", expenses);
+        } catch (error) {
+          console.error("Error fetching user expenses:", error);
+        }
+      }*/
+
+      // download expenses
+      document.getElementById("download").onclick = async function (e) {
+        const token = localStorage.getItem("token");
+
+        try {
+          const response = await fetch("/download", {
+            method: "GET",
+            headers: {
+              Authorization: token,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+
+          const responseData = await response.json();
+
+          if (responseData.success) {
+            const { fileURL } = responseData; // Make sure fileURL is defined
+            if (fileURL) {
+              // Log or handle fileURL as needed
+              console.log("File URL:", fileURL);
+              var a = document.createElement("a");
+              a.href = responseData.fileURL;
+              a.download = "myexpense.csv";
+              a.click();
+
+              // Your additional logic here, e.g., opening the file or redirecting
+            } else {
+              console.error("File URL is undefined");
+            }
+          } else {
+            console.error("Server response indicates failure:", responseData);
+          }
+        } catch (error) {
+          console.error("Error fetching user expenses:", error);
+        }
       };
     </script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>

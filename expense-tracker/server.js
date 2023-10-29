@@ -74,6 +74,7 @@ sequelize
 
 app.post("/signup", loginController.signUp);
 
+
 // Login functionality
 
 app.post("/login", loginController.login);
@@ -119,6 +120,8 @@ async function extractUserId(req, res, next) {
   }
 }
 
+app.get("/download", extractUserId, expenseController.downloadExpense);
+
 // Use the middleware in the /expense route
 app.post("/expense", extractUserId, async (req, res) => {
   const { amount, description, category } = req.body;
@@ -154,12 +157,13 @@ app.post("/expense", extractUserId, async (req, res) => {
 
 app.delete("/expense/:id", expenseController.deleteExpense);
 
-app.get("/expenses", expenseController.showExpense);
+app.get("/expenses", extractUserId, expenseController.showExpense);
+
 
 //buy premium
 
 // Use the middleware in the /purchase/premium route
-app.get("/purchase/premium", extractUserId, purchaseController.buymembership);
+app.get("/purchase/premium",  purchaseController.buymembership);
 
 //update purchase
 app.post(

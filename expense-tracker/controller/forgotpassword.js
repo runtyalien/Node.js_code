@@ -7,7 +7,7 @@ const bcrypt = require("bcrypt");
 const uuid = require('uuid');
 
 
-async function resetpass (req, res) {
+async function resetpass (req, res) {//might not be working for now
   const t = await sequelize.transaction();
   const { email } = req.body;
 
